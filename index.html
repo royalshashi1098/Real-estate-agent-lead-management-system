@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Real Estate Agent Lead Management System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="head-in">
+    <div class="brand">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+      </div>
+      <div>
+        <h1>Real Estate Agent Lead Management System</h1>
+        <p>Organise property enquiries and track sales progress</p>
+      </div>
+    </div>
+    <div class="hbtns"><button class="btn" id="themeBtn" onclick="toggleTheme()" aria-label="Switch colour theme"></button><button class="btn" onclick="openForm()">+ Add lead</button></div>
+  </div>
+</header>
+
+<main>
+  <section class="stats" id="stats"></section>
+
+  <section class="toolbar">
+    <div class="sbox">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="q" type="search" placeholder="Search name, phone, location, property…  (press /)" oninput="render()" aria-label="Search leads">
+      <button id="qClear" onclick="clearSearch()" aria-label="Clear search">✕</button>
+    </div>
+    <select id="fStage" onchange="render()" aria-label="Filter by lead stage"></select>
+    <select id="fPri" onchange="render()" aria-label="Filter by priority">
+      <option value="">All priorities</option><option>High</option><option>Medium</option><option>Low</option>
+    </select>
+    <select id="fSort" onchange="render()" aria-label="Sort leads"><option value="">Sort: pipeline order</option><option value="fu">Next follow-up</option><option value="pri">Priority</option><option value="name">Name A–Z</option><option value="new">Newest first</option></select>
+    <button class="btn-o" id="fDue" onclick="toggleDue()" aria-pressed="false">⏰ Due now</button>
+    <span class="count" id="count"></span>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" role="tab" aria-selected="true" id="tabPipe" onclick="setView('pipe')">Sales Pipeline</button>
+    <button class="tab" role="tab" aria-selected="false" id="tabList" onclick="setView('list')">Lead Profiles</button>
+  </div>
+
+  <section id="viewPipe"><div class="pipeline" id="pipeline"></div></section>
+
+  <section id="viewList" style="display:none">
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Lead</th><th>Phone</th><th>Property Interest</th><th>Lead Stage</th><th>Priority</th><th>Next Follow-up</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="empty" style="display:none">No leads match your search or filters.</div>
+    </div>
+  </section>
+</main>
+
+<!-- Add / Edit lead -->
+<div class="overlay" id="formOv"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+  <div class="modal-head"><h2 id="formTitle">Add Lead</h2><button class="x" onclick="closeAll()" aria-label="Close">✕</button></div>
+  <form id="leadForm" onsubmit="saveLead(event)">
+    <input type="hidden" id="id">
+    <div class="grid">
+      <div><label for="name">Full name <span class="req">*</span></label><input id="name" required maxlength="60"></div>
+      <div><label for="type">Lead type</label><select id="type"><option>Buyer</option><option>Seller</option></select></div>
+      <div><label for="phone">Phone <span class="req">*</span></label><input id="phone" type="tel" required pattern="[0-9+\- ]{7,15}" title="Enter a valid phone number (7–15 digits)"></div>
+      <div><label for="email">Email</label><input id="email" type="email"></div>
+      <div><label for="propType">Property type</label>
+        <select id="propType"><option>Apartment / Flat</option><option>Independent House / Villa</option><option>Plot / Land</option><option>Commercial Shop</option><option>Office Space</option><option>Other</option></select></div>
+      <div><label for="location">Preferred location</label><input id="location" maxlength="60" placeholder="e.g. Jalandhar, Sector 12"></div>
+      <div><label for="budget">Budget</label><input id="budget" maxlength="40" placeholder="e.g. ₹70–80 lakh"></div>
+      <div><label for="stage">Lead stage</label><select id="stage"></select></div>
+      <div><label for="priority">Priority</label><select id="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="full"><label for="notes">Requirements / notes</label><textarea id="notes" rows="3" maxlength="300" placeholder="e.g. 3 BHK, near school, ready to move"></textarea></div>
+    </div>
+    <div class="actions"><button type="button" class="btn-o" onclick="closeAll()">Cancel</button><button class="btn">Save Lead</button></div>
+  </form>
+</div></div>
+
+<!-- Lead detail -->
+<div class="overlay" id="detOv"><div class="modal" role="dialog" aria-modal="true">
+  <div class="modal-head" style="margin-bottom:8px"><span style="color:var(--muted);font-size:12px;font-weight:600">LEAD PROFILE</span><button class="x" onclick="closeAll()" aria-label="Close">✕</button></div>
+  <div id="detBody"></div>
+</div></div>
+
+<!-- Confirm -->
+<div class="overlay" id="confOv"><div class="modal sm">
+  <h2 style="margin-bottom:8px">Delete lead?</h2>
+  <p style="color:var(--muted)" id="confMsg"></p>
+  <div class="actions"><button class="btn-o" onclick="closeConfirm()">Cancel</button><button class="btn" style="background:var(--high)" id="confYes">Delete</button></div>
+</div></div>
+
+<div id="toast" role="status"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
